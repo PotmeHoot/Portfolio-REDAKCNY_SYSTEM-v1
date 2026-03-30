@@ -1,0 +1,58 @@
+{
+  "projects": [
+    {
+      "id": "project-1",
+      "slug": "vibrant-landscapes",
+      "title": "Vibrant Landscapes",
+      "subtitle": "A collection of nature photography",
+      "client": "National Geographic",
+      "year": "2024",
+      "category": "Photography",
+      "tags": ["Nature", "Outdoors", "Color"],
+      "shortDescription": "A series of high-contrast nature shots.",
+      "longDescription": "This project explores the intersection of light and landscape in the remote areas of the world.",
+      "credits": "Photographer: John Doe, Assistant: Jane Smith",
+      "ctaLabel": "View Full Gallery",
+      "poster": "https://picsum.photos/seed/vibrant/1920/1080",
+      "cover": "https://picsum.photos/seed/vibrant-cover/1920/1080",
+      "gallery": [
+        { "id": "m1", "type": "image", "url": "https://picsum.photos/seed/v1/1920/1080", "caption": "The first shot" },
+        { "id": "m2", "type": "image", "url": "https://picsum.photos/seed/v2/1920/1080", "caption": "The second shot" }
+      ],
+      "featured": true,
+      "visible": true,
+      "sortOrder": 0,
+      "accentColor": "#FF6321"
+    },
+    {
+      "id": "project-2",
+      "slug": "minimalist-architecture",
+      "title": "Minimalist Architecture",
+      "subtitle": "Modern structures in urban environments",
+      "client": "ArchDaily",
+      "year": "2023",
+      "category": "Architecture",
+      "tags": ["Modern", "Urban", "Minimalist"],
+      "shortDescription": "Exploring the beauty of simple lines.",
+      "longDescription": "A deep dive into how modern architecture defines our urban spaces through minimalism.",
+      "credits": "Architect: Alice Wonderland",
+      "ctaLabel": "Explore Project",
+      "poster": "https://picsum.photos/seed/arch/1920/1080",
+      "gallery": [
+        { "id": "m3", "type": "image", "url": "https://picsum.photos/seed/a1/1920/1080", "caption": "The main hall" }
+      ],
+      "featured": false,
+      "visible": true,
+      "sortOrder": 1
+    }
+  ],
+  "config": {
+    "name": "Portfolio User",
+    "description": "Senior Product Designer & App Architect",
+    "email": "user@example.com",
+    "socials": [
+      { "platform": "LinkedIn", "url": "https://linkedin.com" },
+      { "platform": "GitHub", "url": "https://github.com" }
+    ]
+  }
+}
