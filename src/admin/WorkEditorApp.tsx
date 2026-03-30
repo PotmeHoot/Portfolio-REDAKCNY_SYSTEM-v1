@@ -16,6 +16,8 @@ import {
   EyeOff, 
   Star, 
   ChevronRight, 
+  ChevronUp,
+  ChevronDown,
   LayoutGrid, 
   List,
   Image as ImageIcon,
@@ -107,6 +109,95 @@ const ProjectCard: React.FC<ProjectCardProps> = ({
   );
 };
 
+interface MediaAssetRowProps {
+  item: MediaItem;
+  onUpdate: (updates: Partial<MediaItem>) => void;
+  onDelete: () => void;
+  onMoveUp?: () => void;
+  onMoveDown?: () => void;
+}
+
+const MediaAssetRow: React.FC<MediaAssetRowProps> = ({ 
+  item, 
+  onUpdate, 
+  onDelete, 
+  onMoveUp, 
+  onMoveDown 
+}) => {
+  return (
+    <div className="flex gap-4 p-4 bg-white border border-neutral-200 rounded-xl group hover:border-neutral-300 transition-all">
+      <div className="w-24 h-24 rounded-lg overflow-hidden bg-neutral-100 flex-shrink-0 border border-neutral-100">
+        {item.url ? (
+          <img src={item.url} alt="Media" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-neutral-300">
+            {item.type === 'video' ? <VideoIcon size={24} /> : <ImageIcon size={24} />}
+          </div>
+        )}
+      </div>
+      <div className="flex-1 space-y-3">
+        <div className="flex items-center gap-3">
+          <select 
+            value={item.type}
+            onChange={(e) => onUpdate({ type: e.target.value as 'image' | 'video' })}
+            className="p-2 bg-neutral-50 border border-neutral-200 rounded-lg text-xs font-medium"
+          >
+            <option value="image">Image</option>
+            <option value="video">Video</option>
+          </select>
+          <input 
+            type="text" 
+            value={item.url}
+            onChange={(e) => onUpdate({ url: e.target.value })}
+            className="flex-1 p-2 bg-neutral-50 border border-neutral-200 rounded-lg text-xs font-mono"
+            placeholder="Media URL..."
+          />
+        </div>
+        <input 
+          type="text" 
+          value={item.caption || ""}
+          onChange={(e) => onUpdate({ caption: e.target.value })}
+          className="w-full p-2 bg-neutral-50 border border-neutral-200 rounded-lg text-xs"
+          placeholder="Caption (optional)"
+        />
+      </div>
+      <div className="flex flex-col gap-1">
+        <button 
+          onClick={onDelete}
+          className="p-2 text-neutral-400 hover:text-red-500 transition-colors"
+          title="Remove"
+        >
+          <Trash2 size={16} />
+        </button>
+        <div className="flex flex-col border-t border-neutral-100 pt-1 mt-1">
+          <button 
+            disabled={!onMoveUp}
+            onClick={onMoveUp}
+            className={cn(
+              "p-1 rounded transition-colors",
+              onMoveUp ? "text-neutral-400 hover:bg-neutral-100 hover:text-black" : "text-neutral-200 cursor-not-allowed"
+            )}
+            title="Move Up"
+          >
+            <ChevronUp size={16} />
+          </button>
+          <button 
+            disabled={!onMoveDown}
+            onClick={onMoveDown}
+            className={cn(
+              "p-1 rounded transition-colors",
+              onMoveDown ? "text-neutral-400 hover:bg-neutral-100 hover:text-black" : "text-neutral-200 cursor-not-allowed"
+            )}
+            title="Move Down"
+          >
+            <ChevronDown size={16} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- Main App ---
 
 export default function WorkEditorApp() {
@@ -173,6 +264,7 @@ export default function WorkEditorApp() {
       longDescription: "",
       poster: "https://picsum.photos/seed/new/1920/1080",
       gallery: [],
+      additionalAssets: [],
       featured: false,
       visible: true,
       sortOrder: data.projects.length
@@ -479,130 +571,180 @@ export default function WorkEditorApp() {
                 </section>
 
                 {/* Section: Media */}
-                <section className="space-y-6">
+                <section className="space-y-12">
                   <div className="flex items-center gap-2 border-b border-neutral-200 pb-2">
                     <ImageIcon size={18} className="text-neutral-400" />
-                    <h2 className="text-lg font-bold">Media Assets</h2>
+                    <h2 className="text-lg font-bold">Media Management</h2>
                   </div>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase text-neutral-400">Poster Image (Thumbnail)</label>
-                      <div className="space-y-3">
-                        <div className="aspect-video rounded-xl overflow-hidden bg-neutral-100 border border-neutral-200">
-                          <img src={activeProject.poster} alt="Poster" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                        </div>
-                        <input 
-                          type="text" 
-                          value={activeProject.poster}
-                          onChange={(e) => updateProject(activeProject.id, { poster: e.target.value })}
-                          className="w-full p-3 bg-white border border-neutral-200 rounded-xl text-xs font-mono"
-                          placeholder="Image URL..."
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase text-neutral-400">Cover Image (Header)</label>
-                      <div className="space-y-3">
-                        <div className="aspect-video rounded-xl overflow-hidden bg-neutral-100 border border-neutral-200">
-                          {activeProject.cover ? (
-                            <img src={activeProject.cover} alt="Cover" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                          ) : (
-                            <div className="w-full h-full flex items-center justify-center text-neutral-300">
-                              <ImageIcon size={48} />
-                            </div>
+
+                  {/* Main Media */}
+                  <div className="space-y-6">
+                    <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-400">Main Media</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-neutral-500">Poster Image (Thumbnail)</label>
+                          {activeProject.poster && (
+                            <button 
+                              onClick={() => updateProject(activeProject.id, { poster: "" })}
+                              className="text-[10px] uppercase font-bold text-red-500 hover:underline"
+                            >
+                              Remove
+                            </button>
                           )}
                         </div>
-                        <input 
-                          type="text" 
-                          value={activeProject.cover || ""}
-                          onChange={(e) => updateProject(activeProject.id, { cover: e.target.value })}
-                          className="w-full p-3 bg-white border border-neutral-200 rounded-xl text-xs font-mono"
-                          placeholder="Image URL..."
-                        />
+                        <div className="space-y-3">
+                          <div className="aspect-video rounded-xl overflow-hidden bg-neutral-100 border border-neutral-200">
+                            {activeProject.poster ? (
+                              <img src={activeProject.poster} alt="Poster" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-neutral-300">
+                                <ImageIcon size={48} />
+                              </div>
+                            )}
+                          </div>
+                          <input 
+                            type="text" 
+                            value={activeProject.poster}
+                            onChange={(e) => updateProject(activeProject.id, { poster: e.target.value })}
+                            className="w-full p-3 bg-white border border-neutral-200 rounded-xl text-xs font-mono"
+                            placeholder="Poster Image URL..."
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <label className="text-xs font-bold text-neutral-500">Cover Image (Header)</label>
+                          {activeProject.cover && (
+                            <button 
+                              onClick={() => updateProject(activeProject.id, { cover: "" })}
+                              className="text-[10px] uppercase font-bold text-red-500 hover:underline"
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                        <div className="space-y-3">
+                          <div className="aspect-video rounded-xl overflow-hidden bg-neutral-100 border border-neutral-200">
+                            {activeProject.cover ? (
+                              <img src={activeProject.cover} alt="Cover" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-neutral-300">
+                                <ImageIcon size={48} />
+                              </div>
+                            )}
+                          </div>
+                          <input 
+                            type="text" 
+                            value={activeProject.cover || ""}
+                            onChange={(e) => updateProject(activeProject.id, { cover: e.target.value })}
+                            className="w-full p-3 bg-white border border-neutral-200 rounded-xl text-xs font-mono"
+                            placeholder="Cover Image URL..."
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-4">
+                  {/* Gallery */}
+                  <div className="space-y-6">
                     <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold uppercase text-neutral-400">Gallery Items</label>
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-400">Gallery Media</h3>
                       <button 
                         onClick={() => {
                           const newItem: MediaItem = { id: `m-${Date.now()}`, type: 'image', url: '' };
                           updateProject(activeProject.id, { gallery: [...activeProject.gallery, newItem] });
                         }}
-                        className="flex items-center gap-1 text-xs font-bold text-black hover:underline"
+                        className="flex items-center gap-1 text-xs font-bold text-black bg-neutral-100 px-3 py-1.5 rounded-lg hover:bg-neutral-200 transition-colors"
                       >
-                        <Plus size={14} /> Add Item
+                        <Plus size={14} /> Add Gallery Item
                       </button>
                     </div>
                     
                     <div className="grid grid-cols-1 gap-4">
-                      {activeProject.gallery.map((item, index) => (
-                        <div key={item.id} className="flex gap-4 p-4 bg-white border border-neutral-200 rounded-xl group">
-                          <div className="w-24 h-24 rounded-lg overflow-hidden bg-neutral-100 flex-shrink-0 border border-neutral-100">
-                            {item.url ? (
-                              <img src={item.url} alt="Gallery" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center text-neutral-300">
-                                <ImageIcon size={24} />
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex-1 space-y-3">
-                            <div className="flex items-center gap-3">
-                              <select 
-                                value={item.type}
-                                onChange={(e) => {
-                                  const newGallery = [...activeProject.gallery];
-                                  newGallery[index] = { ...item, type: e.target.value as 'image' | 'video' };
-                                  updateProject(activeProject.id, { gallery: newGallery });
-                                }}
-                                className="p-2 bg-neutral-50 border border-neutral-200 rounded-lg text-xs font-medium"
-                              >
-                                <option value="image">Image</option>
-                                <option value="video">Video</option>
-                              </select>
-                              <input 
-                                type="text" 
-                                value={item.url}
-                                onChange={(e) => {
-                                  const newGallery = [...activeProject.gallery];
-                                  newGallery[index] = { ...item, url: e.target.value };
-                                  updateProject(activeProject.id, { gallery: newGallery });
-                                }}
-                                className="flex-1 p-2 bg-neutral-50 border border-neutral-200 rounded-lg text-xs font-mono"
-                                placeholder="Media URL..."
-                              />
-                            </div>
-                            <input 
-                              type="text" 
-                              value={item.caption || ""}
-                              onChange={(e) => {
-                                const newGallery = [...activeProject.gallery];
-                                newGallery[index] = { ...item, caption: e.target.value };
-                                updateProject(activeProject.id, { gallery: newGallery });
-                              }}
-                              className="w-full p-2 bg-neutral-50 border border-neutral-200 rounded-lg text-xs"
-                              placeholder="Caption (optional)"
-                            />
-                          </div>
-                          <div className="flex flex-col gap-2">
-                            <button 
-                              onClick={() => {
-                                const newGallery = activeProject.gallery.filter(g => g.id !== item.id);
-                                updateProject(activeProject.id, { gallery: newGallery });
-                              }}
-                              className="p-2 text-neutral-400 hover:text-red-500 transition-colors"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                            <div className="p-2 text-neutral-300 cursor-grab active:cursor-grabbing">
-                              <GripVertical size={16} />
-                            </div>
-                          </div>
+                      {activeProject.gallery.length === 0 && (
+                        <div className="p-8 border-2 border-dashed border-neutral-200 rounded-2xl text-center text-neutral-400 text-sm">
+                          No gallery items yet.
                         </div>
+                      )}
+                      {activeProject.gallery.map((item, index) => (
+                        <MediaAssetRow 
+                          key={item.id}
+                          item={item}
+                          onUpdate={(updates) => {
+                            const newGallery = [...activeProject.gallery];
+                            newGallery[index] = { ...item, ...updates };
+                            updateProject(activeProject.id, { gallery: newGallery });
+                          }}
+                          onDelete={() => {
+                            if (window.confirm('Remove this gallery item?')) {
+                              const newGallery = activeProject.gallery.filter(g => g.id !== item.id);
+                              updateProject(activeProject.id, { gallery: newGallery });
+                            }
+                          }}
+                          onMoveUp={index > 0 ? () => {
+                            const newGallery = [...activeProject.gallery];
+                            [newGallery[index - 1], newGallery[index]] = [newGallery[index], newGallery[index - 1]];
+                            updateProject(activeProject.id, { gallery: newGallery });
+                          } : undefined}
+                          onMoveDown={index < activeProject.gallery.length - 1 ? () => {
+                            const newGallery = [...activeProject.gallery];
+                            [newGallery[index], newGallery[index + 1]] = [newGallery[index + 1], newGallery[index]];
+                            updateProject(activeProject.id, { gallery: newGallery });
+                          } : undefined}
+                        />
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Additional Assets */}
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-bold uppercase tracking-wider text-neutral-400">Additional Project Assets</h3>
+                      <button 
+                        onClick={() => {
+                          const newItem: MediaItem = { id: `a-${Date.now()}`, type: 'image', url: '' };
+                          const currentAssets = activeProject.additionalAssets || [];
+                          updateProject(activeProject.id, { additionalAssets: [...currentAssets, newItem] });
+                        }}
+                        className="flex items-center gap-1 text-xs font-bold text-black bg-neutral-100 px-3 py-1.5 rounded-lg hover:bg-neutral-200 transition-colors"
+                      >
+                        <Plus size={14} /> Add Asset
+                      </button>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 gap-4">
+                      {(!activeProject.additionalAssets || activeProject.additionalAssets.length === 0) && (
+                        <div className="p-8 border-2 border-dashed border-neutral-200 rounded-2xl text-center text-neutral-400 text-sm">
+                          No additional assets.
+                        </div>
+                      )}
+                      {activeProject.additionalAssets?.map((item, index) => (
+                        <MediaAssetRow 
+                          key={item.id}
+                          item={item}
+                          onUpdate={(updates) => {
+                            const newAssets = [...(activeProject.additionalAssets || [])];
+                            newAssets[index] = { ...item, ...updates };
+                            updateProject(activeProject.id, { additionalAssets: newAssets });
+                          }}
+                          onDelete={() => {
+                            if (window.confirm('Remove this asset?')) {
+                              const newAssets = (activeProject.additionalAssets || []).filter(g => g.id !== item.id);
+                              updateProject(activeProject.id, { additionalAssets: newAssets });
+                            }
+                          }}
+                          onMoveUp={index > 0 ? () => {
+                            const newAssets = [...(activeProject.additionalAssets || [])];
+                            [newAssets[index - 1], newAssets[index]] = [newAssets[index], newAssets[index - 1]];
+                            updateProject(activeProject.id, { additionalAssets: newAssets });
+                          } : undefined}
+                          onMoveDown={index < (activeProject.additionalAssets?.length || 0) - 1 ? () => {
+                            const newAssets = [...(activeProject.additionalAssets || [])];
+                            [newAssets[index], newAssets[index + 1]] = [newAssets[index + 1], newAssets[index]];
+                            updateProject(activeProject.id, { additionalAssets: newAssets });
+                          } : undefined}
+                        />
                       ))}
                     </div>
                   </div>

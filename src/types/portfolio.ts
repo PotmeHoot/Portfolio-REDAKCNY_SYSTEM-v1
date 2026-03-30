@@ -27,6 +27,7 @@ export interface Project {
   poster: string;
   cover?: string;
   gallery: MediaItem[];
+  additionalAssets?: MediaItem[];
   featured: boolean;
   visible: boolean;
   sortOrder: number;
